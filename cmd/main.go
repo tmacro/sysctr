@@ -9,13 +9,14 @@ import (
 )
 
 var CLI struct {
-	LogLevel  string  `help:"Set the log level." enum:"trace,debug,info,warn,error" default:"debug"`
-	LogFormat string  `enum:"json,text" default:"text" help:"Set the log format. (json, text)"`
-	Config    string  `short:"c" help:"Path to sysctr configuration." type:"existingfile" placeholder:"PATH"`
-	Run       RunCmd  `cmd:"" help:"Run a container."`
-	Pull      PullCmd `cmd:"" help:"Pull a container's image."`
-	Stop      StopCmd `cmd:"" help:"Stop a container."`
-	Rm        RmCmd   `cmd:"" help:"Remove a container."`
+	LogLevel  string    `help:"Set the log level." enum:"trace,debug,info,warn,error" default:"debug"`
+	LogFormat string    `enum:"json,text" default:"text" help:"Set the log format. (json, text)"`
+	Config    string    `short:"c" help:"Path to sysctr configuration." type:"existingfile" placeholder:"PATH"`
+	Pull      PullCmd   `cmd:"" help:"Pull a container's image."`
+	Run       RunCmd    `cmd:"" help:"Run a container."`
+	Status    StatusCmd `cmd:"" help:"Get the status of a container."`
+	Stop      StopCmd   `cmd:"" help:"Stop a container."`
+	Rm        RmCmd     `cmd:"" help:"Remove a container."`
 }
 
 func setupLogger(level, format string) zerolog.Logger {

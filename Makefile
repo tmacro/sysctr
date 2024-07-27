@@ -37,7 +37,7 @@ tidy:
 	@go mod tidy
 
 clean:
-	@rm -rf bin⏎
+	@rm -f sysctr
 
 .PHONY: gen
 gen:

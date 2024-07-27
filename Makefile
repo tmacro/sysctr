@@ -1,28 +1,24 @@
-export CGO_ENABLED:=0
-
-DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-VERSION=$(shell git describe --tags --match=v* --always --dirty)
-LD_FLAGS="-s -w -X github.com/tmacro/sysctr/version.Version=$(VERSION)"
-
-REPO=github.com/tmacro/sysctr
-LOCAL_REPO=tmacro/sysctr
-IMAGE_REPO=ghcr.io/tmacro/sysctr
+MODULE   = $(shell $(GO) list -m)
+DATE    ?= $(shell date +%FT%T%z)
+VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || echo v0)
 SCHEMAS := $(wildcard pkg/types/schemas/*.json)
 
+BIN      = bin
+GO      = go
+
 .PHONY: all
-all: tidy build test vet fmt
+all: generate fmt tidy build test
 
 .PHONY: build
-build: gen
-	@go build -o sysctr -ldflags $(LD_FLAGS) $(REPO)/cmd
+build: generate
+	$(GO) build \
+		-tags release \
+		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
+		-o $(BIN)/$(basename $(MODULE)) ./cmd
 
 .PHONY: test
 test:
 	@go test ./... -cover
-
-.PHONY: vet
-vet:
-	@go vet -all ./...
 
 .PHONY: fmt
 fmt:
@@ -39,11 +35,27 @@ tidy:
 clean:
 	@rm -f sysctr
 
-.PHONY: gen
-gen:
+.PHONY: generate
+generate:
 	@go-jsonschema \
 		--struct-name-from-title \
 		--extra-imports \
 		-p github.com/tmacro/sysctr/pkg/types \
 		-o pkg/types/types_gen.go \
 		$(SCHEMAS)
+
+$(BIN):
+	@mkdir -p $@
+
+$(BIN)/%: | $(BIN)
+	env GOBIN=$(abspath $(BIN)) $(GO) install $(PACKAGE)
+
+$(BIN)/goreleaser: PACKAGE=github.com/goreleaser/goreleaser/v2@latest
+
+GORELEASER = $(BIN)/goreleaser
+
+release: $(GORELEASER)
+	$(GORELEASER) release --clean
+
+snapshot: $(GORELEASER)
+	$(GORELEASER) release --snapshot --clean

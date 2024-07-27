@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/schemas/container.json",
+    "title": "ContainerState",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "config_hash": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string"
+        },
+        "exit_code": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "config_hash",
+        "status"
+    ]
+}

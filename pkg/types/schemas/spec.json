@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Spec",
+    "type": "object",
+    "definitions": {
+        "env_var": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "value"
+            ]
+        }
+    },
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "image": {
+            "type": "string"
+        },
+        "command": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1
+        },
+        "args": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "env": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/env_var" }
+        }
+    },
+    "required": [
+        "name",
+        "image"
+    ]
+}

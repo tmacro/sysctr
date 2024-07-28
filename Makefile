@@ -1,3 +1,6 @@
+export CGO_ENABLED:=0
+export GO111MODULE:=on
+
 MODULE   = $(shell $(GO) list -m)
 DATE    ?= $(shell date +%FT%T%z)
 VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || echo v0)

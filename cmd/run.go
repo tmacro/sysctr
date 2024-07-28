@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/docker/docker/client"
 	"github.com/rs/zerolog"
 	"github.com/tmacro/sysctr/pkg/driver"
 	"github.com/tmacro/sysctr/pkg/runner"
@@ -23,7 +24,7 @@ func (r *RunCmd) Run(logger zerolog.Logger) error {
 		return err
 	}
 
-	driver, err := driver.NewDockerDriver()
+	driver, err := driver.NewDockerDriver(client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}

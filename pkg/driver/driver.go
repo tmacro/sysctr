@@ -25,6 +25,13 @@ type Spec struct {
 	Command     []string
 	Arguments   []string
 	Environment map[string]string
+	Volumes     []Volume
+}
+
+type Volume struct {
+	Source   string
+	Target   string
+	ReadOnly bool
 }
 
 type ContainerStatus string

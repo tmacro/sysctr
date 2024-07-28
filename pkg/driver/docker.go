@@ -13,6 +13,7 @@ import (
 	dockerContainer "github.com/docker/docker/api/types/container"
 	dockerFilters "github.com/docker/docker/api/types/filters"
 	dockerImage "github.com/docker/docker/api/types/image"
+	dockerMounts "github.com/docker/docker/api/types/mount"
 	dockerClient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 )
@@ -170,8 +171,19 @@ func (d *DockerDriver) CreateContainer(ctx context.Context, spec *Spec) (string,
 		Labels:     spec.Labels,
 	}
 
+	mounts := make([]dockerMounts.Mount, 0)
+	for _, v := range spec.Volumes {
+		mounts = append(mounts, dockerMounts.Mount{
+			Type:     dockerMounts.TypeBind,
+			Source:   v.Source,
+			Target:   v.Target,
+			ReadOnly: v.ReadOnly,
+		})
+	}
+
 	hostConfig := dockerContainer.HostConfig{
 		NetworkMode: "host",
+		Mounts:      mounts,
 	}
 
 	container, err := d.client.ContainerCreate(ctx, &containerConfig, &hostConfig, nil, nil, spec.Name)

@@ -133,6 +133,9 @@ type Spec struct {
 
 	// Name corresponds to the JSON schema field "name".
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
+
+	// VolumeMounts corresponds to the JSON schema field "volume_mounts".
+	VolumeMounts []VolumeMount `json:"volume_mounts,omitempty" yaml:"volume_mounts,omitempty" mapstructure:"volume_mounts,omitempty"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -180,5 +183,58 @@ func (j *Spec) UnmarshalYAML(value *yaml.Node) error {
 		return fmt.Errorf("field %s length: must be >= %d", "command", 1)
 	}
 	*j = Spec(plain)
+	return nil
+}
+
+type VolumeMount struct {
+	// ReadOnly corresponds to the JSON schema field "read_only".
+	ReadOnly *bool `json:"read_only,omitempty" yaml:"read_only,omitempty" mapstructure:"read_only,omitempty"`
+
+	// Source corresponds to the JSON schema field "source".
+	Source string `json:"source" yaml:"source" mapstructure:"source"`
+
+	// Target corresponds to the JSON schema field "target".
+	Target string `json:"target" yaml:"target" mapstructure:"target"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *VolumeMount) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["source"]; raw != nil && !ok {
+		return fmt.Errorf("field source in VolumeMount: required")
+	}
+	if _, ok := raw["target"]; raw != nil && !ok {
+		return fmt.Errorf("field target in VolumeMount: required")
+	}
+	type Plain VolumeMount
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = VolumeMount(plain)
+	return nil
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (j *VolumeMount) UnmarshalYAML(value *yaml.Node) error {
+	var raw map[string]interface{}
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+	if _, ok := raw["source"]; raw != nil && !ok {
+		return fmt.Errorf("field source in VolumeMount: required")
+	}
+	if _, ok := raw["target"]; raw != nil && !ok {
+		return fmt.Errorf("field target in VolumeMount: required")
+	}
+	type Plain VolumeMount
+	var plain Plain
+	if err := value.Decode(&plain); err != nil {
+		return err
+	}
+	*j = VolumeMount(plain)
 	return nil
 }

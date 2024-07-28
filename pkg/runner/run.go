@@ -205,6 +205,16 @@ func run(ctx context.Context, drv driver.Driver, spec *types.Spec) (string, erro
 			env[e.Name] = e.Value
 		}
 
+		volumes := make([]driver.Volume, len(spec.VolumeMounts))
+		for i, v := range spec.VolumeMounts {
+			ro := v.ReadOnly != nil && *v.ReadOnly
+			volumes[i] = driver.Volume{
+				Source:   v.Source,
+				Target:   v.Target,
+				ReadOnly: ro,
+			}
+		}
+
 		containerID, err = drv.CreateContainer(ctx, &driver.Spec{
 			Name:        spec.Name,
 			Image:       spec.Image,
@@ -216,6 +226,7 @@ func run(ctx context.Context, drv driver.Driver, spec *types.Spec) (string, erro
 				LabelName:     spec.Name,
 				LabelSpecHash: configHash,
 			},
+			Volumes: volumes,
 		})
 
 		if err != nil {

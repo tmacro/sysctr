@@ -14,7 +14,7 @@ build: generate
 	$(GO) build \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
-		-o $(BIN)/$(basename $(MODULE)) ./cmd
+		-o sysctr ./cmd
 
 .PHONY: test
 test:

@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/tmacro/sysctr/pkg/driver"
+	_ "github.com/tmacro/sysctr/pkg/driver/containerd"
 	_ "github.com/tmacro/sysctr/pkg/driver/docker"
 )
 

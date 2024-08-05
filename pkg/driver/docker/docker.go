@@ -20,36 +20,33 @@ import (
 )
 
 func init() {
-	driver.RegisterDriver(&DriverFactory{})
-}
-
-type DriverFactory struct{}
-
-func (f *DriverFactory) Name() string {
-	return "docker"
-}
-
-func (f *DriverFactory) New(ctx context.Context, opts map[string]interface{}) (driver.Driver, error) {
-	return NewDockerDriver(dockerClient.WithAPIVersionNegotiation())
+	driver.RegisterDriver(&DockerDriver{})
 }
 
 type DockerDriver struct {
 	client *dockerClient.Client
 }
 
-func NewDockerDriver(opts ...dockerClient.Opt) (driver.Driver, error) {
-	client, err := dockerClient.NewClientWithOpts(opts...)
-	if err != nil {
-		return nil, err
+func (d *DockerDriver) DriverInfo() driver.DriverInfo {
+	return driver.DriverInfo{
+		ID:  "docker",
+		New: func() driver.Driver { return new(DockerDriver) },
 	}
-	return &DockerDriver{
-		client: client,
-	}, nil
 }
 
 type pullLogLine struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
+}
+
+func (d *DockerDriver) Provision(ctx context.Context) error {
+	var err error
+	d.client, err = dockerClient.NewClientWithOpts(dockerClient.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *DockerDriver) PullImage(ctx context.Context, imageRef string) error {

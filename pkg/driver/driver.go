@@ -6,12 +6,9 @@ import (
 	"io"
 )
 
-type DriverFactory interface {
-	Name() string
-	New(ctx context.Context, opts map[string]any) (Driver, error)
-}
-
 type Driver interface {
+	DriverInfo() DriverInfo
+
 	PullImage(ctx context.Context, image string) error
 	FindContainer(ctx context.Context, name string, labels map[string]string) (*Status, error)
 	ContainerStatus(ctx context.Context, id string) (*Status, error)
@@ -21,6 +18,19 @@ type Driver interface {
 	RemoveContainer(ctx context.Context, id string) error
 	WaitForExit(ctx context.Context, id string) error
 	GetLogs(ctx context.Context, id string, stdout, stderr io.Writer) error
+}
+
+type DriverInfo struct {
+	ID  string
+	New func() Driver
+}
+
+type Provisioner interface {
+	Provision(ctx context.Context) error
+}
+
+type Destructor interface {
+	Destroy(ctx context.Context) error
 }
 
 type Spec struct {

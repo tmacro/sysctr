@@ -1,10 +1,6 @@
 package main
 
 import (
-	"context"
-
-	"github.com/rs/zerolog"
-	"github.com/tmacro/sysctr/pkg/driver"
 	"github.com/tmacro/sysctr/pkg/types"
 )
 
@@ -12,22 +8,13 @@ type PullCmd struct {
 	Spec string `short:"s" type:"existingfile" placeholder:"PATH" help:"Path to container specification." required:"true"`
 }
 
-func (p *PullCmd) Run(logger zerolog.Logger) error {
+func (p *PullCmd) Run(appCtx *AppContext) error {
 	spec, err := types.ReadSpecFromFile(p.Spec)
 	if err != nil {
 		return err
 	}
 
-	ctx := context.Background()
-
-	ctx = logger.WithContext(ctx)
-
-	driver, err := driver.GetDriver(ctx, "docker", map[string]any{})
-	if err != nil {
-		return err
-	}
-
-	err = driver.PullImage(ctx, spec.Image)
+	err = appCtx.Driver.PullImage(appCtx.Context, spec.Image)
 	if err != nil {
 		return err
 	}

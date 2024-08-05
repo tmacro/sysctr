@@ -6,6 +6,8 @@ import (
 
 	"github.com/alecthomas/kong"
 	"github.com/rs/zerolog"
+
+	_ "github.com/tmacro/sysctr/pkg/driver/docker"
 )
 
 var CLI struct {

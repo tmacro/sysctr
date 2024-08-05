@@ -1,4 +1,4 @@
-package driver
+package docker
 
 import (
 	"bufio"
@@ -16,13 +16,28 @@ import (
 	dockerMounts "github.com/docker/docker/api/types/mount"
 	dockerClient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/tmacro/sysctr/pkg/driver"
 )
+
+func init() {
+	driver.RegisterDriver(&DriverFactory{})
+}
+
+type DriverFactory struct{}
+
+func (f *DriverFactory) Name() string {
+	return "docker"
+}
+
+func (f *DriverFactory) New(ctx context.Context, opts map[string]interface{}) (driver.Driver, error) {
+	return NewDockerDriver(dockerClient.WithAPIVersionNegotiation())
+}
 
 type DockerDriver struct {
 	client *dockerClient.Client
 }
 
-func NewDockerDriver(opts ...dockerClient.Opt) (Driver, error) {
+func NewDockerDriver(opts ...dockerClient.Opt) (driver.Driver, error) {
 	client, err := dockerClient.NewClientWithOpts(opts...)
 	if err != nil {
 		return nil, err
@@ -76,7 +91,7 @@ func (d *DockerDriver) PullImage(ctx context.Context, imageRef string) error {
 	return scanner.Err()
 }
 
-func (d *DockerDriver) FindContainer(ctx context.Context, name string, labels map[string]string) (*Status, error) {
+func (d *DockerDriver) FindContainer(ctx context.Context, name string, labels map[string]string) (*driver.Status, error) {
 	filter := dockerFilters.NewArgs()
 	filter.Add("name", name)
 	for k, v := range labels {
@@ -93,7 +108,7 @@ func (d *DockerDriver) FindContainer(ctx context.Context, name string, labels ma
 	}
 
 	if len(containers) == 0 {
-		return nil, ErrContainerNotFound
+		return nil, driver.ErrContainerNotFound
 	}
 
 	if len(containers) > 1 {
@@ -102,30 +117,30 @@ func (d *DockerDriver) FindContainer(ctx context.Context, name string, labels ma
 
 	container := containers[0]
 
-	return &Status{
+	return &driver.Status{
 		ID:     container.ID,
 		Status: convertDockerStatus(container.State),
 		Labels: container.Labels,
 	}, nil
 }
 
-func convertDockerStatus(status string) ContainerStatus {
+func convertDockerStatus(status string) driver.ContainerStatus {
 	if status == "created" {
-		return Created
+		return driver.Created
 	}
 
 	if status == "running" || status == "paused" || status == "restarting" {
-		return Running
+		return driver.Running
 	}
 
 	if status == "exited" || status == "dead" || status == "removing" {
-		return Stopped
+		return driver.Stopped
 	}
 
-	return UnknownStatus
+	return driver.UnknownStatus
 }
 
-func (d *DockerDriver) ContainerStatus(ctx context.Context, id string) (*Status, error) {
+func (d *DockerDriver) ContainerStatus(ctx context.Context, id string) (*driver.Status, error) {
 	container, err := d.client.ContainerInspect(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to inspect container: %w", err)
@@ -133,11 +148,11 @@ func (d *DockerDriver) ContainerStatus(ctx context.Context, id string) (*Status,
 
 	containerStatus := convertDockerStatus(container.State.Status)
 
-	if containerStatus == UnknownStatus {
+	if containerStatus == driver.UnknownStatus {
 		return nil, fmt.Errorf("unknown container status: %s", container.State.Status)
 	}
 
-	status := Status{
+	status := driver.Status{
 		ID:     id,
 		Status: containerStatus,
 		Labels: container.Config.Labels,
@@ -162,7 +177,7 @@ func convertEnv(env map[string]string) []string {
 	return envs
 }
 
-func (d *DockerDriver) CreateContainer(ctx context.Context, spec *Spec) (string, error) {
+func (d *DockerDriver) CreateContainer(ctx context.Context, spec *driver.Spec) (string, error) {
 	containerConfig := dockerContainer.Config{
 		Image:      spec.Image,
 		Entrypoint: spec.Command,

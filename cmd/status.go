@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/docker/docker/client"
 	"github.com/rs/zerolog"
 	"github.com/tmacro/sysctr/pkg/driver"
 	"github.com/tmacro/sysctr/pkg/runner"
@@ -22,14 +21,14 @@ func (p *StatusCmd) Run(logger zerolog.Logger) error {
 		return err
 	}
 
-	driver, err := driver.NewDockerDriver(client.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
-	}
-
 	ctx := context.Background()
 
 	ctx = logger.WithContext(ctx)
+
+	driver, err := driver.GetDriver(ctx, "docker", map[string]any{})
+	if err != nil {
+		return err
+	}
 
 	status, err := runner.Status(ctx, driver, spec)
 	if err != nil {

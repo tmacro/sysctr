@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 
-	"github.com/docker/docker/client"
 	"github.com/rs/zerolog"
 	"github.com/tmacro/sysctr/pkg/driver"
 	"github.com/tmacro/sysctr/pkg/types"
@@ -19,14 +18,14 @@ func (p *PullCmd) Run(logger zerolog.Logger) error {
 		return err
 	}
 
-	driver, err := driver.NewDockerDriver(client.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
-	}
-
 	ctx := context.Background()
 
 	ctx = logger.WithContext(ctx)
+
+	driver, err := driver.GetDriver(ctx, "docker", map[string]any{})
+	if err != nil {
+		return err
+	}
 
 	err = driver.PullImage(ctx, spec.Image)
 	if err != nil {

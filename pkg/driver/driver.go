@@ -6,6 +6,11 @@ import (
 	"io"
 )
 
+type DriverFactory interface {
+	Name() string
+	New(ctx context.Context, opts map[string]any) (Driver, error)
+}
+
 type Driver interface {
 	PullImage(ctx context.Context, image string) error
 	FindContainer(ctx context.Context, name string, labels map[string]string) (*Status, error)
